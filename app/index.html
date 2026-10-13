@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title>Membuka MuffinFlow...</title>
+  <style>
+    body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f5f6fb;color:#24304a;font-family:system-ui,Arial,sans-serif;text-align:center}
+    .card{padding:30px;max-width:430px;background:white;border:1px solid #e3e6f1;border-radius:18px;box-shadow:0 12px 40px #2028420e}
+    a{color:#584ac3;overflow-wrap:anywhere}
+  </style>
+</head>
+<body>
+<div class="card">
+  <h2>✦ MuffinFlow</h2>
+  <p id="message">Membuka aplikasi Redaksi &amp; Promosi...</p>
+  <a id="fallback" hidden>Buka secara manual</a>
+</div>
+<script>
+(function(){
+  // Deployment Apps Script sama dengan sistem Redaksi-Promosi v6.
+  var scriptUrl='https://script.google.com/macros/s/AKfycbzIkDYq8KNese_dgkFiAtBHSZUgztKznZokQGfLbAPJc--S1FP0pxx8c5qat5yHGhvwxw/exec';
+  var notice=(new URLSearchParams(location.search)).get('n')||'';
+  if(notice && !/^[a-f0-9]{10}$/i.test(notice)){
+    document.getElementById('message').textContent='ID notifikasi tidak valid.';
+    return;
+  }
+  var url=new URL(scriptUrl);
+  url.searchParams.set('action','muffinflow');
+  if(notice)url.searchParams.set('n',notice.toUpperCase());
+  var link=document.getElementById('fallback');
+  link.href=url.toString();
+  link.hidden=false;
+  location.replace(url.toString());
+})();
+</script>
+</body>
+</html>
