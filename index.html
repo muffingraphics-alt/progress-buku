@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title>Info Progress Buku - Muffin Graphics</title>
+  <style>
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #f1f5f9; color: #172033; font-family: system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+    .card { box-sizing: border-box; max-width: 480px; width: calc(100% - 32px); padding: 28px; border: 1px solid #e2e8f0; background: white; border-radius: 16px; text-align: center; box-shadow: 0 8px 36px #14233a13; }
+    h1 { margin: 4px 0 12px; font-size: 19px; }
+    p { margin: 4px 0 12px; font-size: 14px; line-height: 1.6; }
+    a { color: #2563eb; font-weight: 600; overflow-wrap: anywhere; }
+    .error { color: #b91c1c; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>📚 Info Progress Buku</h1>
+    <p id="status">Sedang membuka halaman monitoring ...</p>
+    <a id="fallback" style="display:none" rel="noreferrer noopener">Klik di sini jika tidak terbuka otomatis</a>
+    <noscript><p class="error">Aktifkan JavaScript di browser untuk membuka halaman monitoring.</p></noscript>
+  </main>
+  <script>
+    (function () {
+      // URL deployment Apps Script lama. Jangan ubah kecuali deployment ID berubah.
+      const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIkDYq8KNese_dgkFiAtBHSZUgztKznZokQGfLbAPJc--S1FP0pxx8c5qat5yHGhvwxw/exec';
+      // Harus sama persis dengan nama tab di Google Sheets.
+      const DEFAULT_SHEET = 'OKT, NOV, DES 2026';
+      const params = new URLSearchParams(window.location.search);
+      const sheet = params.get('s') || DEFAULT_SHEET;
+      const rows = params.get('r');
+      const tahap = params.get('t');
+      const status = document.getElementById('status');
+      const fallback = document.getElementById('fallback');
+      const validStages = new Set(['MGS', 'BDG', 'JKT', 'YGY', 'SBY', 'MDN']);
+
+      if (!sheet || sheet.length > 180 || /[\x00-\x1f]/.test(sheet)) {
+        status.textContent = 'Nama tab Google Sheets tidak valid.';
+        status.className = 'error';
+        return;
+      }
+
+      let url = new URL(APPS_SCRIPT_URL);
+      url.searchParams.set('sheet', sheet);
+      if (rows !== null || tahap !== null) {
+        const isValidRows = rows && /^(?:[2-9]|[1-9]\d+)(?:,(?:[2-9]|[1-9]\d+))*$/.test(rows) && rows.length <= 250;
+        if (!isValidRows || !validStages.has(tahap)) {
+          status.textContent = 'Tautan konfirmasi tidak valid. Minta Redaksi mengirim ulang link.';
+          status.className = 'error';
+          return;
+        }
+        url.searchParams.set('rows', rows);
+        url.searchParams.set('tahap', tahap);
+        status.textContent = 'Sedang membuka portal konfirmasi ...';
+      } else {
+        url.searchParams.set('action', 'katalog');
+      }
+      // Redirect (bukan pengganti backend Apps Script).
+      fallback.href = url.toString();
+      fallback.style.display = 'inline';
+      window.location.replace(url.toString());
+    })();
+  </script>
+</body>
+</html>
