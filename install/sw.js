@@ -1,4 +1,4 @@
-const NAME='muffinflow-install-v1';
+const NAME='muffinflow-install-v2';
 const LOCAL=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(NAME).then(cache=>cache.addAll(LOCAL)).then(()=>self.skipWaiting()));
