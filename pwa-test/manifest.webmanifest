@@ -1,0 +1,25 @@
+{
+  "id": "/progress-buku/pwa-test/",
+  "name": "MuffinFlow",
+  "short_name": "MuffinFlow",
+  "description": "Pintasan ke MuffinFlow Redaksi dan Promosi Muffin Graphics",
+  "start_url": "/progress-buku/pwa-test/",
+  "scope": "/progress-buku/pwa-test/",
+  "display": "standalone",
+  "background_color": "#fff7fb",
+  "theme_color": "#b52b86",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
