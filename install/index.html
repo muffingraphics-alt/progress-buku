@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#a62d82">
+  <meta name="description" content="Pasang pintasan MuffinFlow dengan ikon Muffin Graphics di Android.">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <title>Install MuffinFlow | Muffin Graphics</title>
+  <style>
+    :root{color-scheme:light;--berry:#b62d89;--plum:#532544;--ink:#39253c;--line:#efd6e5;--muted:#786878}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100dvh;background:linear-gradient(145deg,#fff4fa 0%,#f8effa 55%,#fffaf3 100%);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+    main{width:min(100% - 32px,480px);margin:0 auto;padding:clamp(38px,9vh,100px) 0 70px}
+    .panel{background:white;border:1px solid var(--line);border-radius:26px;padding:27px 22px;box-shadow:0 15px 50px rgba(139,43,107,.10)}
+    .brand{display:flex;align-items:center;gap:14px;margin-bottom:24px}
+    .brand img{height:77px;width:77px;border-radius:20px;border:1px solid var(--line)}
+    h1{font-size:24px;letter-spacing:-.6px;line-height:1.17;margin:0 0 6px}
+    .sub{color:var(--muted);font-size:13px;margin:0}
+    .eyebrow{font-size:11px;letter-spacing:.08em;font-weight:800;color:var(--berry);margin:0 0 8px}
+    h2{font-size:21px;margin:0 0 12px;letter-spacing:-.35px}
+    p{font-size:14px;color:#766776;line-height:1.6;margin:0 0 18px}
+    .actions{display:grid;gap:10px}
+    button,.button{font:700 14px system-ui,-apple-system,"Segoe UI",Arial,sans-serif;border-radius:13px;padding:15px 12px;text-decoration:none;text-align:center;cursor:pointer;display:block}
+    button{border:0;background:var(--berry);color:white}
+    .button{background:#fff4fa;border:1px solid #e8c1d8;color:#902e72}
+    button:focus-visible,.button:focus-visible{outline:3px solid #f7c8e8;outline-offset:2px}
+    .note{font-size:12px;line-height:1.55;color:#886c80;padding:13px 14px;background:#fff6fb;border:1px solid #f5deed;border-radius:12px;margin-top:16px}
+    .label{margin:21px 0 9px;font-size:12px;font-weight:800;color:#7a486a}
+    .steps{padding-left:22px;margin:0;color:#67556a;font-size:13px;line-height:1.85}
+    .installed{display:none;margin:12px 0 0;padding:12px;border-radius:12px;background:#eafaf1;color:#0b7650;font-size:13px;font-weight:650}
+    .footer{text-align:center;font-size:11px;color:#998296;margin:19px 0 0}
+    @media(min-width:470px){.panel{padding:32px}}
+  </style>
+</head>
+<body>
+<main>
+  <section class="panel">
+    <div class="brand">
+      <img src="./icon-192.png" alt="Logo muffin merah muda">
+      <div><h1>MuffinFlow</h1><div class="sub">Muffin Graphics · Redaksi &amp; Promosi</div></div>
+    </div>
+    <div class="eyebrow">AKSES APLIKASI DI HP</div>
+    <h2>Pasang MuffinFlow 🧁</h2>
+    <p>Tambahkan ikon muffin ke layar utama Android. Cukup satu ketukan untuk membuka launcher MuffinFlow, tanpa perlu mengetik alamat lagi.</p>
+    <div class="actions">
+      <button id="installBtn" type="button">📲 Install MuffinFlow</button>
+      <a class="button" href="https://muffingraphics-alt.github.io/progress-buku/app/" target="_blank" rel="noopener noreferrer">Buka MuffinFlow asli ↗</a>
+    </div>
+    <div class="installed" id="installed">✓ Launcher MuffinFlow sudah terbuka sebagai aplikasi terpasang.</div>
+    <div class="note" id="hint" role="status">Buka halaman ini melalui <strong>Chrome Android</strong>, lalu ketuk <strong>Install MuffinFlow</strong>. Jika Chrome belum menampilkan pilihan Install, gunakan menu <strong>⋮ → Tambahkan ke Layar Utama</strong>.</div>
+    <div class="label">Setelah terpasang</div>
+    <ol class="steps">
+      <li>Ketuk ikon muffin di layar utama HP.</li>
+      <li>Tekan <strong>Buka MuffinFlow asli</strong>.</li>
+      <li>Login menggunakan akun yang sama seperti sebelumnya.</li>
+    </ol>
+    <div class="note">Aplikasi utama masih berjalan di Google Apps Script, jadi saat dibuka bisa berpindah ke Chrome. Ini launcher ringan, bukan APK atau PWA penuh. Data buku, kode akses, dan notifikasi tidak diubah.</div>
+  </section>
+  <div class="footer">Muffin Graphics · Tidak perlu membuat akun baru</div>
+</main>
+<script>
+(function(){
+  "use strict";
+  const btn=document.getElementById("installBtn");
+  const hint=document.getElementById("hint");
+  const installed=document.getElementById("installed");
+  let deferred=null;
+  function checkInstalled(){
+    const yes=window.matchMedia("(display-mode: standalone)").matches||
+      window.navigator.standalone===true;
+    if(yes){btn.hidden=true;installed.style.display="block";}
+  }
+  checkInstalled();
+  window.addEventListener("beforeinstallprompt",function(e){
+    e.preventDefault();deferred=e;
+    hint.textContent="Chrome siap memasang MuffinFlow. Ketuk Install MuffinFlow.";
+  });
+  btn.addEventListener("click",async function(){
+    if(deferred){
+      const prompt=deferred;deferred=null;
+      try{
+        await prompt.prompt();
+        const result=await prompt.userChoice;
+        hint.textContent=result.outcome==="accepted"
+          ?"Terima kasih! Setelah pemasangan selesai, cari ikon muffin di layar utama."
+          :"Belum dipasang. Kamu bisa mencoba lagi lewat menu Chrome ⋮.";
+      }catch(e){hint.textContent="Gunakan Chrome ⋮ → Tambahkan ke Layar Utama / Install aplikasi.";}
+    }else{
+      hint.innerHTML="Jika belum muncul dialog Install, ketuk menu <strong>⋮ Chrome → Tambahkan ke Layar Utama</strong> atau <strong>Install aplikasi</strong>. Pastikan membuka link ini di Chrome, bukan browser WhatsApp.";
+    }
+  });
+  window.addEventListener("appinstalled",function(){
+    hint.textContent="Berhasil! Ikon muffin sudah dapat dibuka dari layar utama HP.";
+    btn.hidden=true;installed.style.display="block";
+  });
+  if("serviceWorker" in navigator){
+    window.addEventListener("load",function(){
+      navigator.serviceWorker.register("./sw.js",{scope:"./"}).catch(function(){
+        hint.textContent="PWA belum berhasil diaktifkan. Coba muat ulang halaman di Chrome.";
+      });
+    });
+  }
+})();
+</script>
+</body>
+</html>
