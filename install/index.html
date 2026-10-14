@@ -107,8 +107,10 @@
     }
   });
   window.addEventListener("appinstalled",function(){
-    hint.textContent="Berhasil dipasang! Membuka MuffinFlow asli...";
-    openMainApp();
+    hint.textContent="MuffinFlow berhasil dipasang. Sekarang buka lewat ikon muffin di layar utama HP.";
+    btn.hidden=true;
+    installed.textContent="✓ Instalasi selesai. Ketuk ikon muffin untuk membuka aplikasi utama.";
+    installed.style.display="block";
   });
   if("serviceWorker" in navigator){
     window.addEventListener("load",function(){
