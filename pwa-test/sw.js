@@ -1,5 +1,0 @@
-const CACHE='muffinflow-pwa-demo-v1';
-const ASSETS=['./','./index.html','./manifest.webmanifest','./icon.svg','./icon-192.svg','./icon-512.svg'];
-self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting()))});
-self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(names=>Promise.all(names.filter(n=>n.startsWith('muffinflow-pwa-demo-')&&n!==CACHE).map(n=>caches.delete(n)))).then(()=>self.clients.claim()))});
-self.addEventListener('fetch',event=>{const u=new URL(event.request.url);if(event.request.method!=='GET'||u.origin!==self.location.origin||!u.pathname.startsWith('/progress-buku/pwa-test/'))return;event.respondWith(fetch(event.request).then(r=>{if(r.ok){const c=r.clone();caches.open(CACHE).then(cache=>cache.put(event.request,c));}return r}).catch(()=>caches.match(event.request).then(r=>r||caches.match('./index.html'))));});
