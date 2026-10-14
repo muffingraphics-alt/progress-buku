@@ -47,17 +47,17 @@
     </div>
     <div class="eyebrow">AKSES APLIKASI DI HP</div>
     <h2>Pasang MuffinFlow 🧁</h2>
-    <p>Tambahkan ikon muffin ke layar utama Android. Cukup satu ketukan untuk membuka launcher MuffinFlow, tanpa perlu mengetik alamat lagi.</p>
+    <p>Tambahkan ikon muffin ke layar utama Android. Ketuk ikon muffin di layar utama. MuffinFlow asli akan dibuka otomatis, tanpa perlu mengetik alamat lagi.</p>
     <div class="actions">
       <button id="installBtn" type="button">📲 Install MuffinFlow</button>
       <a class="button" href="https://muffingraphics-alt.github.io/progress-buku/app/" target="_blank" rel="noopener noreferrer">Buka MuffinFlow asli ↗</a>
     </div>
-    <div class="installed" id="installed">✓ Launcher MuffinFlow sudah terbuka sebagai aplikasi terpasang.</div>
+    <div class="installed" id="installed">Sedang membuka MuffinFlow asli...</div>
     <div class="note" id="hint" role="status">Buka halaman ini melalui <strong>Chrome Android</strong>, lalu ketuk <strong>Install MuffinFlow</strong>. Jika Chrome belum menampilkan pilihan Install, gunakan menu <strong>⋮ → Tambahkan ke Layar Utama</strong>.</div>
     <div class="label">Setelah terpasang</div>
     <ol class="steps">
       <li>Ketuk ikon muffin di layar utama HP.</li>
-      <li>Tekan <strong>Buka MuffinFlow asli</strong>.</li>
+      <li>MuffinFlow asli terbuka otomatis. Jika tidak, ketuk <strong>Buka MuffinFlow asli</strong>.</li>
       <li>Login menggunakan akun yang sama seperti sebelumnya.</li>
     </ol>
     <div class="note">Aplikasi utama masih berjalan di Google Apps Script, jadi saat dibuka bisa berpindah ke Chrome. Ini launcher ringan, bukan APK atau PWA penuh. Data buku, kode akses, dan notifikasi tidak diubah.</div>
@@ -70,13 +70,24 @@
   const btn=document.getElementById("installBtn");
   const hint=document.getElementById("hint");
   const installed=document.getElementById("installed");
+  const mainAppUrl="https://muffingraphics-alt.github.io/progress-buku/app/";
   let deferred=null;
-  function checkInstalled(){
-    const yes=window.matchMedia("(display-mode: standalone)").matches||
-      window.navigator.standalone===true;
-    if(yes){btn.hidden=true;installed.style.display="block";}
+  let opening=false;
+  function openMainApp(){
+    if(opening)return;
+    opening=true;
+    btn.hidden=true;
+    installed.textContent="Membuka MuffinFlow asli...";
+    installed.style.display="block";
+    // Navigation to Apps Script is cross-origin and may open Chrome.
+    // This is expected: the installed PWA is only a launcher.
+    window.setTimeout(function(){window.location.replace(mainAppUrl);},350);
   }
-  checkInstalled();
+  const isStandalone=window.matchMedia("(display-mode: standalone)").matches||
+    window.navigator.standalone===true;
+  const fromIcon=(new URLSearchParams(location.search)).get("launch")==="1";
+  // Launches from an existing installation as well as newly installed icons.
+  if(isStandalone||fromIcon)openMainApp();
   window.addEventListener("beforeinstallprompt",function(e){
     e.preventDefault();deferred=e;
     hint.textContent="Chrome siap memasang MuffinFlow. Ketuk Install MuffinFlow.";
@@ -96,8 +107,8 @@
     }
   });
   window.addEventListener("appinstalled",function(){
-    hint.textContent="Berhasil! Ikon muffin sudah dapat dibuka dari layar utama HP.";
-    btn.hidden=true;installed.style.display="block";
+    hint.textContent="Berhasil dipasang! Membuka MuffinFlow asli...";
+    openMainApp();
   });
   if("serviceWorker" in navigator){
     window.addEventListener("load",function(){
