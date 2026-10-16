@@ -30,6 +30,15 @@
   var url=new URL(scriptUrl);
   url.searchParams.set('action','muffinflow');
   if(notice)url.searchParams.set('n',notice.toUpperCase());
+  var from=new URLSearchParams(location.search);
+  var go=from.get('go')||'';
+  if(['chat','inbox','books'].includes(go)){
+    url.searchParams.set('go',go);
+    var peer=from.get('peer')||'',code=from.get('code')||'',period=from.get('period')||'';
+    if(go==='chat'&&/^[A-Za-z0-9_-]{1,50}$/.test(peer))url.searchParams.set('peer',peer);
+    if(/^[A-Za-z0-9][A-Za-z0-9-]{2,40}$/.test(code))url.searchParams.set('code',code);
+    if(period&&period.length<=100)url.searchParams.set('period',period);
+  }
   var link=document.getElementById('fallback');
   link.href=url.toString();
   link.hidden=false;
