@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#a62d82"><title>Aktifkan Push - MuffinFlow</title>
+<link rel="icon" href="./icon-192.png"><link rel="manifest" href="./manifest.webmanifest">
+<style>
+*{box-sizing:border-box}body{font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;margin:0;background:linear-gradient(140deg,#fff4fb,#fff8ef);color:#382339;min-height:100dvh;display:grid;place-items:center;padding:22px}
+.card{max-width:480px;width:100%;background:white;border:1px solid #f0d4e5;border-radius:23px;padding:25px;box-shadow:0 15px 50px #a72a8520}
+.logo{width:82px;height:82px;object-fit:contain;display:block;margin:0 auto 10px;border-radius:22px}
+h1{font-size:23px;text-align:center;margin:5px 0 9px}p{color:#776777;font-size:13px;line-height:1.65;text-align:center}
+button,.btn{border:0;background:#b02d83;color:#fff;font-size:14px;font-weight:750;cursor:pointer;border-radius:12px;padding:14px;display:block;width:100%;margin-top:12px;text-align:center;text-decoration:none}
+.btn{background:#fff1f8;color:#932a73;border:1px solid #f0cce0}
+button:disabled{opacity:.6;cursor:wait}.status{font-size:13px;padding:13px;border-radius:11px;margin-top:14px;background:#fff2f4;color:#95304d;line-height:1.6;overflow-wrap:anywhere}
+.status.ok{background:#e8f8ed;color:#17683a}.foot{text-align:center;font-size:11px;color:#a58b9c;margin-top:15px}
+</style></head><body>
+<main class="card">
+<img class="logo" src="./icon-192.png" alt="Logo Muffin Graphics">
+<h1>Aktifkan Notifikasi MuffinFlow 🧁</h1>
+<p>Hubungkan perangkat ini dengan akun MuffinFlow yang sedang login. Tidak perlu mengisi Firebase atau menyalin token perangkat.</p>
+<button id="activate" type="button">🔔 Izinkan &amp; Hubungkan Perangkat</button>
+<div id="status" class="status" role="status">Menunggu aktivasi. Pastikan kamu membuka tautan dari tombol di Chat Tim MuffinFlow.</div>
+<a class="btn" href="./">Kembali ke MuffinFlow →</a>
+<div class="foot">Satu aplikasi • akun tetap sama • tidak mengubah data produksi</div>
+</main>
+<script type="module">
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js';
+import {getMessaging,getToken,isSupported} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-messaging.js';
+// Public Firebase client config; NOT an admin credential.
+const firebaseConfig={
+  apiKey:'AIzaSyBMluMIV85ARPdvmRxYt0_wtf6AWj65ZrQ',
+  authDomain:'muffinflow-push-tes.firebaseapp.com',
+  projectId:'muffinflow-push-tes',
+  messagingSenderId:'362784889800',
+  appId:'1:362784889800:web:01b0e0f239c84e8413befd'
+};
+const PUBLIC_VAPID='BBcH5qKqFJJeu0PwLBJeD5nBWBP1FHQMZjhaK4yrTS6klQIM0Mta2eJ20rNimQINDKwCk39fZUicCe4Qd6V_jy0';
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbx-ucRHd_Rm8jzo0e9ZvVYCQ7lPzDAqQ9FFRJJqsYUIciNtPoVFkBoq1JiRHy7zb1832Q/exec';
+const pair=new URLSearchParams(location.search).get('pair')||'';
+const btn=document.getElementById('activate'),box=document.getElementById('status');
+function status(message,ok){box.textContent=message;box.className='status'+(ok?' ok':'');}
+function jsonp(url){
+ return new Promise((resolve,reject)=>{
+  const cb='__mfcb'+Math.random().toString(36).slice(2,12);
+  const script=document.createElement('script');const timer=setTimeout(()=>finish(new Error('Server tidak merespons. Periksa deployment Apps Script.')),16000);
+  function finish(error,data){clearTimeout(timer);delete window[cb];script.remove();error?reject(error):resolve(data);}
+  window[cb]=data=>finish(null,data);
+  script.onerror=()=>finish(new Error('Gagal menghubungi Apps Script.'));
+  url.searchParams.set('callback',cb);script.src=url.toString();document.head.appendChild(script);
+ });
+}
+if(!/^[a-f0-9]{64}$/i.test(pair)){
+ btn.disabled=true;status('Tautan aktivasi belum ada atau tidak valid. Masuk ke MuffinFlow → Chat Tim → Aktifkan Push untuk membuat tautan baru.');
+}
+btn.addEventListener('click',async()=>{
+ if(!/^[a-f0-9]{64}$/i.test(pair))return;
+ btn.disabled=true;btn.textContent='Menghubungkan...';
+ try{
+  if(!('Notification' in window)||!('serviceWorker' in navigator)||!(await isSupported()))throw Error('Perangkat/browser ini belum mendukung push. Gunakan Chrome versi terbaru.');
+  const permission=await Notification.requestPermission();
+  if(permission!=='granted')throw Error('Izin notifikasi belum diberikan. Periksa pengaturan Chrome.');
+  const registration=await navigator.serviceWorker.register('./sw.js',{scope:'./'});
+  await navigator.serviceWorker.ready;
+  const messaging=getMessaging(initializeApp(firebaseConfig));
+  const token=await getToken(messaging,{vapidKey:PUBLIC_VAPID,serviceWorkerRegistration:registration});
+  if(!token)throw Error('Firebase tidak mengeluarkan token untuk perangkat ini.');
+  let device=localStorage.getItem('mf_v5_device_id');
+  if(!/^[a-z0-9-]{8,80}$/.test(device||'')){
+   device=crypto.randomUUID().toLowerCase();localStorage.setItem('mf_v5_device_id',device);
+  }
+  const platform=/Android/i.test(navigator.userAgent)?'Android':/Windows/i.test(navigator.userAgent)?'Windows':'Perangkat';
+  const url=new URL(SCRIPT_URL);
+  url.searchParams.set('action','mf_push_bind');url.searchParams.set('pair',pair);
+  url.searchParams.set('token',token);url.searchParams.set('device',device);url.searchParams.set('label','Chrome '+platform);
+  status('Firebase siap. Menautkan perangkat ke akun MuffinFlow...');
+  const result=await jsonp(url);
+  if(!result||!result.ok)throw Error(result?.error||'Gagal mengaitkan perangkat.');
+  status('✅ Berhasil! Perangkat ini terhubung ke akun '+result.user+'. Chat, update produksi, dan konfirmasi dapat mengirim push otomatis. Kamu boleh menutup halaman ini.',true);
+  btn.textContent='✅ Perangkat Terhubung';
+ }catch(e){status('Belum berhasil: '+String(e&&e.message||e)+'\nJika tautan kedaluwarsa, kembali ke Chat Tim dan buat tautan baru.');btn.disabled=false;btn.textContent='Coba Lagi';}
+});
+</script></body></html>
