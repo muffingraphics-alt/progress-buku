@@ -66,7 +66,7 @@ hr{border:0;border-top:1px solid #f1deea;margin:20px 0}
 <label for="deviceToken">Token perangkat FCM (untuk tes Firebase Console saja)</label>
 <textarea id="deviceToken" readonly placeholder="Token akan muncul setelah berhasil mendaftarkan perangkat."></textarea>
 <div class="actions"><button id="copyBtn" type="button" class="secondary">Salin Token Perangkat</button></div>
-<small>Konfigurasi publik disimpan hanya di browser perangkat ini. Token berlaku khusus untuk perangkat/browser dan dapat berubah. Jangan unggah token ke repository publik.</small>
+<small>Konfigurasi publik disimpan hanya di browser perangkat ini. Token berlaku khusus untuk perangkat/browser dan dapat berubah. Jangan unggah token ke repository publik.</small><div class="notice" style="margin-top:10px">Jika tes Firebase dilakukan ketika halaman ini terlihat, pesan masuk akan muncul di status di atas <strong>dan</strong> dicoba ditampilkan sebagai notifikasi sistem. Saat halaman ditutup atau tersembunyi, layanan push membutuhkan service worker dan izin browser.</div>
 <hr>
 <h2>3. Uji push sungguhan saat aplikasi tidak terlihat</h2>
 <ol><li>Setelah token muncul, buka <a href="https://console.firebase.google.com/" target="_blank" rel="noopener">Firebase Console</a> → Messaging / Campaigns.</li>
@@ -83,6 +83,7 @@ import { getMessaging, getToken, isSupported, onMessage } from "https://www.gsta
 const $=id=>document.getElementById(id);
 const keys=["apiKey","authDomain","projectId","senderId","appId","vapid"];
 const storeKey="mf_push_test_public_config_v1";
+let receivedCount=0;
 let workerReg=null;
 let foregroundListener=null;
 let firebaseApp=null;
@@ -118,8 +119,8 @@ $("localBtn").addEventListener("click",async()=>{
  try{
    await requestPermission();
    const registration=await sw();
-   await registration.showNotification("🧁 MuffinFlow — Tes Lokal",{body:"Notifikasi ini berasal dari halaman uji GitHub Pages, bukan pesan chat.",icon:"../install/icon-192.png",badge:"../install/icon-192.png",tag:"muffinflow-local-test",data:{url:"./"}});
-   status("localStatus","Permintaan notifikasi lokal dikirim. Periksa pusat notifikasi sistem.","ok");
+   await registration.showNotification("🧁 MuffinFlow — Tes Lokal",{body:"Notifikasi ini berasal dari halaman uji GitHub Pages, bukan pesan chat.",icon:"../install/icon-192.png",badge:"../install/icon-192.png",tag:"muffinflow-local-test-"+Date.now(),data:{url:"./"}});
+   status("localStatus","Tes lokal baru dikirim ("+new Date().toLocaleTimeString("id-ID")+"). Cek pusat notifikasi Windows (Win + N).","ok");
  }catch(e){status("localStatus","Tes gagal: "+errorText(e),"error");}
  refreshEnvironment();
 });
@@ -139,10 +140,12 @@ $("registerBtn").addEventListener("click",async()=>{
     if(!token)throw Error("Firebase belum mengeluarkan token. Periksa Cloud Messaging dan VAPID key.");
     $("deviceToken").value=token;
     if(!foregroundListener){
-       foregroundListener=onMessage(messaging,payload=>{
+       foregroundListener=onMessage(messaging,async payload=>{
           const title=payload?.notification?.title||"MuffinFlow";
           const body=payload?.notification?.body||payload?.data?.body||"Pesan uji diterima.";
-          status("fcmStatus","Pesan FCM diterima ketika halaman aktif:\n"+title+"\n"+body,"ok");
+          receivedCount++;
+          status("fcmStatus","FCM diterima di halaman aktif ("+receivedCount+" pesan):\n"+title+"\n"+body+"\nJika notifikasi Windows tidak muncul, cek izin perangkat.","ok");
+          try{const r=await sw();await r.showNotification(title,{body,icon:"../install/icon-192.png",tag:"mf-fcm-active-"+Date.now(),data:{url:"./"}});}catch(e){status("fcmStatus","FCM DITERIMA, tetapi popup Windows gagal: "+errorText(e),"error");}
        });
     }
     status("fcmStatus","Perangkat berhasil didaftarkan! Salin token, lalu uji kirim dari Firebase Console saat HP terkunci.","ok");
