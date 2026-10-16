@@ -1,6 +1,6 @@
 /* MuffinFlow v5.0 - shared launcher and push worker for ONE installed app. */
-const NAME='muffinflow-install-v5';
-const LOCAL=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png','./badge-96.png','./activate.html'];
+const NAME='muffinflow-install-v5-badge2';
+const LOCAL=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png','./badge-muffin-96.png','./activate.html'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(NAME).then(cache=>cache.addAll(LOCAL)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(names=>Promise.all(names.filter(n=>n.startsWith('muffinflow-install-')&&n!==NAME).map(n=>caches.delete(n)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',event=>{
@@ -16,7 +16,7 @@ self.addEventListener('push',event=>{
   const title=String(d.title||p.notification?.title||'🧁 MuffinFlow');
   const body=String(d.body||p.notification?.body||'Ada pemberitahuan baru.');
   await self.registration.showNotification(title,{
-   body,icon:'./icon-192.png',badge:'./badge-96.png',
+   body,icon:'./icon-192.png',badge:'./badge-muffin-96.png',
    tag:d.tag||'mf-'+Date.now(),data:{url:'./'},vibrate:[110,70,110]
   });
  })());
