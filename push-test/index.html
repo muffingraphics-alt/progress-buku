@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ad2d83">
+<meta name="description" content="Pengujian notifikasi push Android dan desktop untuk MuffinFlow.">
+<meta name="robots" content="noindex,nofollow">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="../install/icon-192.png">
+<link rel="apple-touch-icon" href="../install/icon-192.png">
+<title>MuffinFlow | Uji Push Notification</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:#37233a;background:#fff8fb}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 88% 0%,#fce2f1,transparent 45%),#fff8fb}
+main{max-width:720px;margin:0 auto;padding:26px 16px 60px}
+header{display:flex;align-items:center;gap:14px;margin:10px 0 22px}
+header img{width:62px;height:62px;object-fit:contain;border-radius:16px;background:white}
+h1{margin:0;font-size:25px;line-height:1.2}h2{font-size:16px;margin:0 0 11px}.muted{color:#866f83;font-size:13px;line-height:1.55}
+.card{background:white;border:1px solid #f0dce8;border-radius:19px;padding:20px;margin:15px 0;box-shadow:0 7px 29px #9439730c}
+.notice{background:#fff5df;border:1px solid #f6dfa5;border-radius:11px;padding:12px;color:#78532a;font-size:12px;line-height:1.55}
+button,a.btn{border:0;border-radius:11px;background:#ad2d83;color:white;padding:13px 15px;text-decoration:none;font-weight:750;font-size:13px;display:inline-flex;justify-content:center;align-items:center;cursor:pointer;text-align:center}
+button.secondary,a.btn.secondary{background:#fff1f9;border:1px solid #edc4de;color:#91216e}
+button:disabled{opacity:.6;cursor:not-allowed}
+.actions{display:flex;flex-wrap:wrap;gap:9px}
+label{display:block;font-size:12px;font-weight:750;margin:12px 0 5px}
+input,textarea{width:100%;border:1px solid #e5cbd9;background:white;padding:11px 12px;border-radius:9px;color:#302039;font:13px system-ui}
+textarea{min-height:98px;resize:vertical;font-family:ui-monospace,Consolas,monospace;overflow-wrap:anywhere}
+.status{border-radius:10px;background:#f6f3f7;border:1px solid #ece3eb;color:#604d61;padding:12px;margin:10px 0;font-size:12px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}
+.status.ok{background:#eafaf0;border-color:#bae5c9;color:#176b42}
+.status.error{background:#fff0ef;border-color:#f6c4c4;color:#a3263a}
+ol{padding-left:20px;font-size:13px;line-height:1.8;color:#635064}
+details summary{font-size:13px;font-weight:750;cursor:pointer;color:#8d2d71}
+small{font-size:11px;line-height:1.6;color:#847185;display:block;margin-top:8px}
+hr{border:0;border-top:1px solid #f1deea;margin:20px 0}
+@media(max-width:500px){h1{font-size:22px}.card{padding:17px}.actions button,.actions a{flex:1 1 160px}}
+</style>
+</head>
+<body>
+<main>
+<header><img src="../install/icon-192.png" alt="Logo muffin"><div><h1>Uji Push MuffinFlow</h1><div class="muted">Tahap 3 · Android &amp; Desktop · Halaman eksperimen</div></div></header>
+<div class="notice"><strong>MuffinFlow v4.9 tetap aman.</strong> Halaman ini belum terhubung ke chat, tidak memakai kode akses anggota, dan tidak mengubah Google Sheets. Jangan masukkan kunci privat Firebase atau file service account ke halaman ini maupun GitHub.</div>
+<section class="card">
+<h2>1. Cek dan coba notifikasi perangkat</h2>
+<p class="muted">Pengujian ini membuktikan Chrome dapat menampilkan notifikasi dari situs GitHub Pages. <strong>Bukan</strong> pengujian pengiriman jarak jauh ketika HP terkunci.</p>
+<div id="env" class="status">Sedang memeriksa browser...</div>
+<div class="actions"><button id="permissionBtn" type="button">Izinkan Notifikasi</button><button id="localBtn" type="button" class="secondary">Tes Notifikasi Lokal</button></div>
+<div id="localStatus" class="status" role="status">Belum diuji.</div>
+</section>
+<section class="card">
+<h2>2. Aktifkan uji Firebase Cloud Messaging</h2>
+<p class="muted">Buat proyek Firebase gratis, tambahkan aplikasi Web, lalu isi konfigurasi web yang bersifat publik di bawah. Ambil juga <strong>Web Push certificate public VAPID key</strong> dari menu Cloud Messaging.</p>
+<details><summary>Cara mengambil konfigurasi Firebase</summary>
+<ol><li>Buka <a href="https://console.firebase.google.com/" target="_blank" rel="noopener">Firebase Console</a> dan buat project <strong>MuffinFlow Push Test</strong>.</li>
+<li>Project settings → General → Your apps → tambah aplikasi <strong>Web (&lt;/&gt;)</strong>. Salin nilai <code>firebaseConfig</code>.</li>
+<li>Project settings → Cloud Messaging → Web Push certificates → Generate key pair → salin <strong>public key</strong>.</li>
+<li>Jangan salin atau membagikan service account JSON / private key.</li></ol></details>
+<label for="apiKey">Web API key (apiKey)</label><input id="apiKey" autocomplete="off" placeholder="AIza...">
+<label for="authDomain">Auth domain (opsional)</label><input id="authDomain" autocomplete="off" placeholder="nama-project.firebaseapp.com">
+<label for="projectId">Project ID</label><input id="projectId" autocomplete="off" placeholder="nama-project">
+<label for="senderId">Messaging sender ID (messagingSenderId)</label><input id="senderId" autocomplete="off" placeholder="1234567890" inputmode="numeric">
+<label for="appId">Firebase app ID</label><input id="appId" autocomplete="off" placeholder="1:...:web:...">
+<label for="vapid">Web Push public VAPID key</label><textarea id="vapid" rows="2" placeholder="B... (kunci publik)"></textarea>
+<div class="actions" style="margin-top:14px"><button id="registerBtn" type="button">Daftarkan perangkat untuk Push</button><button id="resetBtn" class="secondary" type="button">Hapus konfigurasi lokal</button></div>
+<div id="fcmStatus" class="status" role="status">Belum terhubung ke Firebase.</div>
+<label for="deviceToken">Token perangkat FCM (untuk tes Firebase Console saja)</label>
+<textarea id="deviceToken" readonly placeholder="Token akan muncul setelah berhasil mendaftarkan perangkat."></textarea>
+<div class="actions"><button id="copyBtn" type="button" class="secondary">Salin Token Perangkat</button></div>
+<small>Konfigurasi publik disimpan hanya di browser perangkat ini. Token berlaku khusus untuk perangkat/browser dan dapat berubah. Jangan unggah token ke repository publik.</small>
+<hr>
+<h2>3. Uji push sungguhan saat aplikasi tidak terlihat</h2>
+<ol><li>Setelah token muncul, buka <a href="https://console.firebase.google.com/" target="_blank" rel="noopener">Firebase Console</a> → Messaging / Campaigns.</li>
+<li>Buat notifikasi uji, pilih <strong>Send test message</strong>, lalu tempel token perangkat FCM.</li>
+<li>Pindahkan Chrome ke latar belakang, atau kunci layar Android. Kirim tes dari Firebase Console menggunakan perangkat lain.</li>
+<li>Periksa apakah notifikasi sistem muncul dan dapat diketuk. Hasil ini menguji push jarak jauh, bukan bunyi tab Chrome.</li></ol>
+<div class="notice">Jika pesan tidak muncul, pastikan notifikasi Chrome di Android dan situs GitHub Pages tidak diblokir, mode Jangan Ganggu tidak aktif, dan tidak ada penghemat baterai yang menunda pengiriman.</div>
+</section>
+<div class="actions" style="justify-content:center"><a class="btn secondary" href="../app/" target="_blank" rel="noopener noreferrer">Buka MuffinFlow v4.9 yang asli ↗</a></div>
+</main>
+<script type="module">
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import { getMessaging, getToken, isSupported, onMessage } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-messaging.js";
+const $=id=>document.getElementById(id);
+const keys=["apiKey","authDomain","projectId","senderId","appId","vapid"];
+const storeKey="mf_push_test_public_config_v1";
+let workerReg=null;
+let foregroundListener=null;
+let firebaseApp=null;
+function status(id,message,kind=""){const el=$(id);el.textContent=message;el.className="status"+(kind?" "+kind:"");}
+try{const saved=JSON.parse(localStorage.getItem(storeKey)||"{}");keys.forEach(k=>{if(saved[k])$(k).value=saved[k];});}catch(_){}
+function save(){const v={};keys.forEach(k=>v[k]=$(k).value.trim());localStorage.setItem(storeKey,JSON.stringify(v));return v;}
+function errorText(e){return (e&&e.message)||String(e||"Terjadi kesalahan");}
+async function sw(){
+  if(!("serviceWorker" in navigator))throw Error("Browser ini tidak mendukung Service Worker.");
+  if(!workerReg)workerReg=await navigator.serviceWorker.register("./sw.js",{scope:"./"});
+  await navigator.serviceWorker.ready;
+  return workerReg;
+}
+async function requestPermission(){
+  if(!("Notification" in window))throw Error("Browser ini tidak mendukung notifikasi.");
+  const permission=await Notification.requestPermission();
+  if(permission!=="granted")throw Error("Izin notifikasi belum diberikan ("+permission+"). Periksa pengaturan situs Chrome.");
+  return permission;
+}
+async function refreshEnvironment(){
+  const supported="Notification" in window;
+  const swSupported="serviceWorker" in navigator;
+  let firebaseSupported=false;
+  try{firebaseSupported=await isSupported();}catch(_){}
+  status("env","Chrome/Browser: "+navigator.userAgent.slice(0,94)+"\nIzin notifikasi: "+(supported?Notification.permission:"tidak didukung")+"\nService Worker: "+(swSupported?"tersedia":"tidak tersedia")+"\nFirebase Messaging: "+(firebaseSupported?"didukung":"belum didukung"),supported&&swSupported?"ok":"error");
+}
+$("permissionBtn").addEventListener("click",async()=>{
+  try{await requestPermission();await sw();status("localStatus","Izin notifikasi berhasil. Sekarang coba Tes Notifikasi Lokal.","ok");}
+  catch(e){status("localStatus","Gagal: "+errorText(e),"error");}
+  refreshEnvironment();
+});
+$("localBtn").addEventListener("click",async()=>{
+ try{
+   await requestPermission();
+   const registration=await sw();
+   await registration.showNotification("🧁 MuffinFlow — Tes Lokal",{body:"Notifikasi ini berasal dari halaman uji GitHub Pages, bukan pesan chat.",icon:"../install/icon-192.png",badge:"../install/icon-192.png",tag:"muffinflow-local-test",data:{url:"./"}});
+   status("localStatus","Permintaan notifikasi lokal dikirim. Periksa pusat notifikasi sistem.","ok");
+ }catch(e){status("localStatus","Tes gagal: "+errorText(e),"error");}
+ refreshEnvironment();
+});
+$("registerBtn").addEventListener("click",async()=>{
+  $("registerBtn").disabled=true;
+  try{
+    const cfg=save();
+    for(const k of ["apiKey","projectId","senderId","appId","vapid"]){if(!cfg[k])throw Error("Isi "+k+" terlebih dahulu.");}
+    await requestPermission();
+    if(!(await isSupported()))throw Error("Firebase Messaging tidak didukung pada browser ini.");
+    const registration=await sw();
+    const firebaseConfig={apiKey:cfg.apiKey,authDomain:cfg.authDomain||cfg.projectId+".firebaseapp.com",projectId:cfg.projectId,messagingSenderId:cfg.senderId,appId:cfg.appId};
+    firebaseApp=getApps().length?getApps()[0]:initializeApp(firebaseConfig);
+    const messaging=getMessaging(firebaseApp);
+    status("fcmStatus","Sedang meminta token dari Firebase...");
+    const token=await getToken(messaging,{vapidKey:cfg.vapid,serviceWorkerRegistration:registration});
+    if(!token)throw Error("Firebase belum mengeluarkan token. Periksa Cloud Messaging dan VAPID key.");
+    $("deviceToken").value=token;
+    if(!foregroundListener){
+       foregroundListener=onMessage(messaging,payload=>{
+          const title=payload?.notification?.title||"MuffinFlow";
+          const body=payload?.notification?.body||payload?.data?.body||"Pesan uji diterima.";
+          status("fcmStatus","Pesan FCM diterima ketika halaman aktif:\n"+title+"\n"+body,"ok");
+       });
+    }
+    status("fcmStatus","Perangkat berhasil didaftarkan! Salin token, lalu uji kirim dari Firebase Console saat HP terkunci.","ok");
+  }catch(e){status("fcmStatus","Belum berhasil: "+errorText(e),"error");}
+  finally{$("registerBtn").disabled=false;refreshEnvironment();}
+});
+$("copyBtn").addEventListener("click",async()=>{
+  const token=$("deviceToken").value.trim();
+  if(!token){status("fcmStatus","Daftarkan perangkat dahulu agar token tersedia.","error");return;}
+  try{await navigator.clipboard.writeText(token);status("fcmStatus","Token disalin. Tempel hanya di Firebase Console untuk menguji notifikasi.","ok");}
+  catch(_){$("deviceToken").focus();$("deviceToken").select();status("fcmStatus","Token dipilih. Salin dengan Copy.","ok");}
+});
+$("resetBtn").addEventListener("click",()=>{
+ localStorage.removeItem(storeKey);
+ keys.forEach(k=>$(k).value="");
+ $("deviceToken").value="";
+ status("fcmStatus","Konfigurasi browser dihapus. Token yang sudah terdaftar di Firebase tidak dicabut oleh tindakan ini.");
+});
+refreshEnvironment();
+</script>
+</body>
+</html>
