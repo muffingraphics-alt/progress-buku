@@ -87,7 +87,12 @@
     window.navigator.standalone===true;
   const fromIcon=(new URLSearchParams(location.search)).get("launch")==="1";
   // Launches from an existing installation as well as newly installed icons.
-  if(isStandalone||fromIcon)openMainApp();
+  const pair=new URLSearchParams(location.search).get("pair")||"";
+  if(/^[a-f0-9]{64}$/i.test(pair)){
+    window.location.replace("./activate.html?pair="+encodeURIComponent(pair));
+  }else if(isStandalone||fromIcon){
+    openMainApp();
+  }
   window.addEventListener("beforeinstallprompt",function(e){
     e.preventDefault();deferred=e;
     hint.textContent="Chrome siap memasang MuffinFlow. Ketuk Install MuffinFlow.";
