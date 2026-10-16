@@ -81,7 +81,17 @@
     installed.style.display="block";
     // Navigation to Apps Script is cross-origin and may open Chrome.
     // This is expected: the installed PWA is only a launcher.
-    window.setTimeout(function(){window.location.replace(mainAppUrl);},350);
+    var forwarded=new URL(mainAppUrl);
+    var query=new URLSearchParams(location.search);
+    var go=query.get('go')||'';
+    if(['chat','inbox','books'].includes(go)){
+      forwarded.searchParams.set('go',go);
+      var peer=query.get('peer')||'',code=query.get('code')||'',period=query.get('period')||'';
+      if(go==='chat'&&/^[A-Za-z0-9_-]{1,50}$/.test(peer))forwarded.searchParams.set('peer',peer);
+      if(/^[A-Za-z0-9][A-Za-z0-9-]{2,40}$/.test(code))forwarded.searchParams.set('code',code);
+      if(period&&period.length<=100)forwarded.searchParams.set('period',period);
+    }
+    window.setTimeout(function(){window.location.replace(forwarded.toString());},350);
   }
   const isStandalone=window.matchMedia("(display-mode: standalone)").matches||
     window.navigator.standalone===true;
@@ -90,7 +100,7 @@
   const pair=new URLSearchParams(location.search).get("pair")||"";
   if(/^[a-f0-9]{64}$/i.test(pair)){
     window.location.replace("./activate.html?pair="+encodeURIComponent(pair));
-  }else if(isStandalone||fromIcon){
+  }else if(isStandalone||fromIcon||['chat','inbox','books'].includes(new URLSearchParams(location.search).get('go'))){
     openMainApp();
   }
   window.addEventListener("beforeinstallprompt",function(e){
