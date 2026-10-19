@@ -1,12 +1,15 @@
-/* MuffinFlow v5.1.1 - push opens the app, never the installation page. */
-const NAME = 'muffinflow-install-v5-deeplink2';
+/* MuffinFlow v5.2.2 - launch installed PWA scope first for lock-screen push clicks. */
+const NAME = 'muffinflow-install-v5-deeplink3';
 const LOCAL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './badge-muffin-96.png', './activate.html'];
 const INSTALL_URL = new URL('./', self.registration.scope);
 const APP_URL = new URL('../app/', self.registration.scope);
 
 // Only allow known routes and plain identifiers from notification payloads.
 function destination(data) {
-  const out = new URL(APP_URL.href);
+  // A launch must stay inside the installed WebAPK scope. The launcher
+  // forwards to the GAS app afterward; this does not turn GAS into a PWA.
+  const out = new URL(INSTALL_URL.href);
+  out.searchParams.set('launch', '1');
   const go = String((data && data.go) || '').toLowerCase();
   if (!['chat', 'inbox', 'books'].includes(go)) return out;
   out.searchParams.set('go', go);
@@ -20,7 +23,8 @@ function destination(data) {
 }
 
 function clickedDestination(data) {
-  // Notifications created by the older worker have data.url set to /install/.
+  // Convert both older /app/ links and /install/ links to the PWA scope.
+  // This avoids opening an out-of-scope Chrome tab directly from Android lock screen.
   // Read their route but do not visit that installation page again.
   const previous = data && data.url;
   if (typeof previous === 'string') {
