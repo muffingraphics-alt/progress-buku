@@ -12,7 +12,38 @@
   <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
   <link rel="apple-touch-icon" href="./icon-192.png">
   <title>Install MuffinFlow | Muffin Graphics</title>
+  <!-- v5.2: resolve installed launches before the install page can paint. -->
+  <script>
+  (function(){
+    var params = new URLSearchParams(location.search);
+    var pair = params.get('pair') || '';
+    if (/^[a-f0-9]{64}$/i.test(pair)) {
+      location.replace('./activate.html?pair='+encodeURIComponent(pair));
+      return;
+    }
+    var go = params.get('go') || '';
+    var installed = window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone === true;
+    if (!(installed || params.get('launch') === '1' || ['chat','inbox','books'].includes(go))) return;
+    // Keep the install UI for manual visits, but never show it during an app launch.
+    document.documentElement.classList.add('mf-auto-launch');
+    var app = new URL('https://script.google.com/macros/s/AKfycbx-ucRHd_Rm8jzo0e9ZvVYCQ7lPzDAqQ9FFRJJqsYUIciNtPoVFkBoq1JiRHy7zb1832Q/exec');
+    app.searchParams.set('action', 'muffinflow');
+    var notice = params.get('n') || '';
+    if (/^[a-f0-9]{10}$/i.test(notice)) app.searchParams.set('n',notice.toUpperCase());
+    if (['chat','inbox','books'].includes(go)) {
+      app.searchParams.set('go',go);
+      var peer=params.get('peer')||'',code=params.get('code')||'',period=params.get('period')||'';
+      if(go==='chat' && /^[A-Za-z0-9_-]{1,50}$/.test(peer)) app.searchParams.set('peer',peer);
+      if(/^[A-Za-z0-9][A-Za-z0-9-]{2,40}$/.test(code)) app.searchParams.set('code',code);
+      if(period && period.length<=100) app.searchParams.set('period',period);
+    }
+    location.replace(app.href);
+  })();
+  </script>
   <style>
+    html.mf-auto-launch main,html.mf-auto-launch .footer{display:none!important}
+    html.mf-auto-launch body{background:#fff9fc}
     :root{color-scheme:light;--berry:#b62d89;--plum:#532544;--ink:#39253c;--line:#efd6e5;--muted:#786878}
     *{box-sizing:border-box}
     body{margin:0;min-height:100dvh;background:linear-gradient(145deg,#fff4fa 0%,#f8effa 55%,#fffaf3 100%);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
@@ -72,37 +103,6 @@
   const installed=document.getElementById("installed");
   const mainAppUrl="https://muffingraphics-alt.github.io/progress-buku/app/";
   let deferred=null;
-  let opening=false;
-  function openMainApp(){
-    if(opening)return;
-    opening=true;
-    btn.hidden=true;
-    installed.textContent="Membuka MuffinFlow asli...";
-    installed.style.display="block";
-    // Navigation to Apps Script is cross-origin and may open Chrome.
-    // This is expected: the installed PWA is only a launcher.
-    var forwarded=new URL(mainAppUrl);
-    var query=new URLSearchParams(location.search);
-    var go=query.get('go')||'';
-    if(['chat','inbox','books'].includes(go)){
-      forwarded.searchParams.set('go',go);
-      var peer=query.get('peer')||'',code=query.get('code')||'',period=query.get('period')||'';
-      if(go==='chat'&&/^[A-Za-z0-9_-]{1,50}$/.test(peer))forwarded.searchParams.set('peer',peer);
-      if(/^[A-Za-z0-9][A-Za-z0-9-]{2,40}$/.test(code))forwarded.searchParams.set('code',code);
-      if(period&&period.length<=100)forwarded.searchParams.set('period',period);
-    }
-    window.setTimeout(function(){window.location.replace(forwarded.toString());},350);
-  }
-  const isStandalone=window.matchMedia("(display-mode: standalone)").matches||
-    window.navigator.standalone===true;
-  const fromIcon=(new URLSearchParams(location.search)).get("launch")==="1";
-  // Launches from an existing installation as well as newly installed icons.
-  const pair=new URLSearchParams(location.search).get("pair")||"";
-  if(/^[a-f0-9]{64}$/i.test(pair)){
-    window.location.replace("./activate.html?pair="+encodeURIComponent(pair));
-  }else if(isStandalone||fromIcon||['chat','inbox','books'].includes(new URLSearchParams(location.search).get('go'))){
-    openMainApp();
-  }
   window.addEventListener("beforeinstallprompt",function(e){
     e.preventDefault();deferred=e;
     hint.textContent="Chrome siap memasang MuffinFlow. Ketuk Install MuffinFlow.";
