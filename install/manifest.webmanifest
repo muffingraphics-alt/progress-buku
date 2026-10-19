@@ -3,7 +3,7 @@
   "name": "MuffinFlow - Muffin Graphics",
   "short_name": "MuffinFlow",
   "description": "Launcher untuk membuka aplikasi internal Redaksi dan Promosi Muffin Graphics",
-  "start_url": "/progress-buku/install/",
+  "start_url": "/progress-buku/install/?launch=1",
   "scope": "/progress-buku/install/",
   "display": "standalone",
   "background_color": "#fff4fa",
